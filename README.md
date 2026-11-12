@@ -1,7 +1,9 @@
 # Telemetría binaria mediante BFSK (Comunicaciones II, Grupo 6)
 
 **Escenario:** S5 · Telemetría binaria mediante FSK
-**Integrantes:** Juan Pablo Moreno Peña · Juan David Ruiz Higuera
+**Integrantes:
+** Juan Pablo Moreno Peña · 
+Juan David Ruiz Higuera
 **Curso:** Comunicaciones II, Universidad Industrial de Santander, 2026-2
 **Última actualización:** 11 de noviembre de 2026
 **Video de socialización:** https://youtu.be/89CpjFcQKe8
