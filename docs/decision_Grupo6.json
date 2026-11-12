@@ -1,0 +1,25 @@
+{
+  "version": "COM2-BETA-DECISION-1",
+  "group": "Grupo 6",
+  "members": "Juan Pablo Moreno Peña; Juan David Ruiz Higuera",
+  "scenario": "s5",
+  "scenarioName": "S5 · Telemetría binaria mediante FSK",
+  "problem": 0,
+  "modulation": 4,
+  "grc": 2,
+  "pack": 0,
+  "pulse": 0,
+  "bw": 0,
+  "perturbation": 0,
+  "variable": 4,
+  "levels": 0,
+  "observables": [
+    0,
+    2,
+    3,
+    4
+  ],
+  "hypothesis": 0,
+  "justification": "Esta configuración se eligió en base a querer aislar el efecto de Δf en un enlace BFSK, se utilizara el paquete de parámetros A (Rs=32 ksym/s; SPS=8; fs=256 kS/s) que cumple con fs=Rs×SPS y se puede ver claramente los 2 lóbulos, así mismo sus transiciones de frecuencia sin que se vea saturada la gráfica  de tiempo, se espera que con la PSD, frecuencia instantánea, Rb/Rs/BW calculados y señal temporal se van a lograr obtener todas las evidencias necesarias al contrastarlas con Carson y así verificar la hipótesis que más Δf implica más separación espectral entre estados y más ancho de banda.",
+  "timestamp": "2026-10-15T15:19:28.854Z"
+}

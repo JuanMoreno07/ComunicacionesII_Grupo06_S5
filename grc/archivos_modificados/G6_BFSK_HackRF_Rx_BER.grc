@@ -1,0 +1,968 @@
+options:
+  parameters:
+    author: Grupo 6 - Juan Pablo Moreno Peña; Juan David Ruiz Higuera
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    description: Receptor BFSK con e_EbN0_Sweep tras la adaptación de tasa y e_BER_Curve/e_BER_CSV (Guía 4).
+    generate_options: qt_gui
+    id: G6_BFSK_HackRF_Rx_BER
+    title: Grupo 6 - Receptor BFSK HackRF + medición BER vs Eb/N0
+    output_language: python
+    placement: (0,0)
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    window_size: (1500,900)
+    max_nouts: '0'
+    realtime_scheduling: ''
+    qt_qss_theme: ''
+    thread_safe_setters: ''
+    hier_block_src_path: '.:'
+    copyright: ''
+    gen_linking: dynamic
+    gen_cmake: 'On'
+    cmake_opt: ''
+  states:
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: import_math
+  id: import
+  parameters:
+    imports: 'import math
+
+      from gnuradio.filter import firdes'
+  states:
+    coordinate:
+    - 220
+    - 8
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: fs = Rs*SPS = 10000*100 (paquete C, GRC base FSK)
+    value: 1e6
+  states:
+    coordinate:
+    - 450
+    - 8
+    rotation: 0
+    state: enabled
+- name: sps
+  id: variable
+  parameters:
+    comment: ''
+    value: '100'
+  states:
+    coordinate:
+    - 680
+    - 8
+    rotation: 0
+    state: enabled
+- name: symbol_rate
+  id: variable
+  parameters:
+    comment: Rs = 10 kBd (fija; selector guiado S5)
+    value: samp_rate/sps
+  states:
+    coordinate:
+    - 910
+    - 8
+    rotation: 0
+    state: enabled
+- name: Rb
+  id: variable
+  parameters:
+    comment: 'BFSK binaria: Rb = Rs'
+    value: symbol_rate
+  states:
+    coordinate:
+    - 1140
+    - 8
+    rotation: 0
+    state: enabled
+- name: fsk_deviation
+  id: variable_qtgui_range
+  parameters:
+    label: Desviación FSK Δf [Hz] (variable del experimento)
+    value: '10000'
+    start: '1000'
+    stop: '40000'
+    step: '1000'
+    rangeType: float
+    widget: counter_slider
+    orient: QtCore.Qt.Horizontal
+    min_len: '200'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1370
+    - 8
+    rotation: 0
+    state: enabled
+- name: rx_decim
+  id: variable
+  parameters:
+    comment: decimación del filtro de canal del receptor
+    value: '10'
+  states:
+    coordinate:
+    - 1600
+    - 8
+    rotation: 0
+    state: enabled
+- name: rx_rate
+  id: variable
+  parameters:
+    comment: 100 kS/s en el receptor
+    value: samp_rate/rx_decim
+  states:
+    coordinate:
+    - 1830
+    - 8
+    rotation: 0
+    state: enabled
+- name: sps_rx
+  id: variable
+  parameters:
+    comment: 10 muestras/símbolo en el receptor
+    value: sps//rx_decim
+  states:
+    coordinate:
+    - 220
+    - 178
+    rotation: 0
+    state: enabled
+- name: h_fsk
+  id: variable
+  parameters:
+    comment: índice de modulación
+    value: 2*fsk_deviation/symbol_rate
+  states:
+    coordinate:
+    - 450
+    - 178
+    rotation: 0
+    state: enabled
+- name: carson_bw
+  id: variable
+  parameters:
+    comment: BW de Carson
+    value: 2*(fsk_deviation + Rb/2)
+  states:
+    coordinate:
+    - 680
+    - 178
+    rotation: 0
+    state: enabled
+- name: chan_taps
+  id: variable
+  parameters:
+    comment: 'Filtro de canal Rx: corte = BW Carson / 2'
+    value: firdes.low_pass(1.0, samp_rate, fsk_deviation + symbol_rate/2, symbol_rate/2)
+  states:
+    coordinate:
+    - 910
+    - 178
+    rotation: 0
+    state: enabled
+- name: prbs9
+  id: variable
+  parameters:
+    comment: PRBS9 (511 bits) conocida por Tx y Rx
+    value: '[1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,0,1,1,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,1,1,0,1,1,0,1,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,1,1,0,1,1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,1,1,0,0,0,1,1,0,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,1,0,0,0,0,1,0,0,1,1,1,0,0,1,0,1,0,1,0,1,1,0,0,0,0,1,1,0,1,1,1,1,0,1,0,0,1,1,0,1,1,1,0,0,1,0,0,0,1,0,1,0,0,0,0,1,0,1,0,1,1,0,1,0,0,1,1,1,1,1,1,0,1,1,0,0,1,0,0,1,0,0,1,0,1,1,0,1,1,1,1,1,1,0,0,1,0,0,1,1,0,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,1,0,1,0,0,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,1,0,1,0,0,0,1,0,1,1,0,0,0,1,1,1,0,1,0,1,1,0,0,1,0,1,1,0,0,1,1,1,1,0,0,0,1,1,1,1,1,0,1,1,1,0,1,0,0,0,0,0,1,1,0,1,0,1,1,0,1,1,0,1,1,1,0,1,1,0,0,0,0,0,1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,0,1,0,0,0,0,0,0,1,0,1,0,0,1,0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,1,1,1,0,1,0,0,1,0,0,1,1,1,1,0,1,0,1,1,1,0,1,0,1,0,0,0,1,0,0,1,0,0,0,0,1,1,0,0,1,1,1,0,0,0,0,1,0,1,1,1,1,0,1,1,0,1,1,0,0,1,1,0,1,0,0,0,0,1,1,1,0,1,1,1,1,0,0,0,0]'
+  states:
+    coordinate:
+    - 1140
+    - 178
+    rotation: 0
+    state: enabled
+- name: fc
+  id: variable
+  parameters:
+    comment: frecuencia RF central (la usada en la práctica)
+    value: 960e6
+  states:
+    coordinate:
+    - 1370
+    - 178
+    rotation: 0
+    state: enabled
+- name: lo_off
+  id: variable
+  parameters:
+    comment: offset para alejar la señal del pico DC del HackRF
+    value: 200e3
+  states:
+    coordinate:
+    - 1600
+    - 178
+    rotation: 0
+    state: enabled
+- name: radio_rate
+  id: variable
+  parameters:
+    comment: tasa del HackRF = samp_rate*2/1
+    value: 2e6
+  states:
+    coordinate:
+    - 1830
+    - 178
+    rotation: 0
+    state: enabled
+- name: interp
+  id: variable
+  parameters:
+    comment: ''
+    value: '2'
+  states:
+    coordinate:
+    - 220
+    - 348
+    rotation: 0
+    state: enabled
+- name: decim
+  id: variable
+  parameters:
+    comment: ''
+    value: '1'
+  states:
+    coordinate:
+    - 450
+    - 348
+    rotation: 0
+    state: enabled
+- name: hackrf_rx
+  id: variable
+  parameters:
+    comment: ''
+    value: '"hackrf=0"'
+  states:
+    coordinate:
+    - 680
+    - 348
+    rotation: 0
+    state: enabled
+- name: rx_lna
+  id: variable_qtgui_range
+  parameters:
+    label: Rx IF gain / LNA HackRF (0-40 dB, pasos de 8)
+    value: '16'
+    start: '0'
+    stop: '40'
+    step: '8'
+    rangeType: float
+    widget: counter_slider
+    orient: QtCore.Qt.Horizontal
+    min_len: '200'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 910
+    - 348
+    rotation: 0
+    state: enabled
+- name: rx_vga
+  id: variable_qtgui_range
+  parameters:
+    label: Rx BB gain / VGA HackRF (0-62 dB, pasos de 2)
+    value: '20'
+    start: '0'
+    stop: '62'
+    step: '2'
+    rangeType: float
+    widget: counter_slider
+    orient: QtCore.Qt.Horizontal
+    min_len: '200'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1140
+    - 348
+    rotation: 0
+    state: enabled
+- name: rx_ppm
+  id: variable_qtgui_range
+  parameters:
+    label: Corrección de frecuencia Rx [ppm]
+    value: '0'
+    start: '-40'
+    stop: '40'
+    step: '0.5'
+    rangeType: float
+    widget: counter_slider
+    orient: QtCore.Qt.Horizontal
+    min_len: '200'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1370
+    - 348
+    rotation: 0
+    state: enabled
+- name: hackrf_source
+  id: osmosdr_source
+  parameters:
+    type: fc32
+    args: hackrf_rx
+    nchan: '1'
+    sample_rate: radio_rate
+    freq0: fc + lo_off
+    corr0: rx_ppm
+    dc_offset_mode0: '0'
+    iq_balance_mode0: '0'
+    gain_mode0: 'False'
+    gain0: '0'
+    if_gain0: rx_lna
+    bb_gain0: rx_vga
+    ant0: ''
+    bw0: '0'
+    num_mboards: '1'
+    sync: none
+  states:
+    coordinate:
+    - 16
+    - 718
+    rotation: 0
+    state: enabled
+- name: rx_desplaza
+  id: freq_xlating_fir_filter_xxx
+  parameters:
+    type: ccc
+    decim: '1'
+    taps: firdes.low_pass(1.0, radio_rate, 150e3, 50e3)
+    center_freq: -lo_off
+    samp_rate: radio_rate
+  states:
+    coordinate:
+    - 286
+    - 718
+    rotation: 0
+    state: enabled
+- name: adaptacion_tasa_rx
+  id: rational_resampler_xxx
+  parameters:
+    type: ccc
+    interp: decim
+    decim: interp
+    taps: '[]'
+    fbw: '0'
+  states:
+    coordinate:
+    - 556
+    - 718
+    rotation: 0
+    state: enabled
+- name: psd_rx_radio
+  id: qtgui_freq_sink_x
+  parameters:
+    name: '"Rx: espectro tras el desplazamiento (radio_rate)"'
+    nconnections: '1'
+    type: complex
+    fftsize: '2048'
+    bw: radio_rate
+    fc: fc
+    wintype: window.WIN_BLACKMAN_hARRIS
+    average: '0.2'
+    grid: 'True'
+    ymin: '-120'
+    ymax: '10'
+    units: dB
+    update_time: '0.10'
+    gui_hint: ''
+    freqhalf: 'True'
+  states:
+    coordinate:
+    - 286
+    - 868
+    rotation: 0
+    state: enabled
+- name: psd_rx_bb
+  id: qtgui_freq_sink_x
+  parameters:
+    name: '"Rx: PSD en banda base (bb_rate)"'
+    nconnections: '1'
+    type: complex
+    fftsize: '2048'
+    bw: samp_rate
+    fc: '0'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    average: '0.2'
+    grid: 'True'
+    ymin: '-120'
+    ymax: '10'
+    units: dB
+    update_time: '0.10'
+    gui_hint: ''
+    freqhalf: 'True'
+  states:
+    coordinate:
+    - 826
+    - 978
+    rotation: 0
+    state: enabled
+- name: rx_iq
+  id: qtgui_time_sink_x
+  parameters:
+    name: '"Rx: envolvente compleja (bb_rate)"'
+    nconnections: '1'
+    type: complex
+    size: '2048'
+    srate: samp_rate
+    autoscale: 'False'
+    ymin: '-2'
+    ymax: '2'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'True'
+    gui_hint: ''
+    label1: '"I"'
+    label2: '"Q"'
+  states:
+    coordinate:
+    - 826
+    - 1238
+    rotation: 0
+    state: enabled
+- name: EbN0_min
+  id: variable
+  parameters:
+    comment: ''
+    value: '0.0'
+  states:
+    coordinate:
+    - 1600
+    - 348
+    rotation: 0
+    state: enabled
+- name: EbN0_max
+  id: variable
+  parameters:
+    comment: ''
+    value: '14.0'
+  states:
+    coordinate:
+    - 1830
+    - 348
+    rotation: 0
+    state: enabled
+- name: EbN0_step
+  id: variable
+  parameters:
+    comment: ''
+    value: '1.0'
+  states:
+    coordinate:
+    - 220
+    - 518
+    rotation: 0
+    state: enabled
+- name: N_EbN0
+  id: variable
+  parameters:
+    comment: ''
+    value: int(round((EbN0_max-EbN0_min)/EbN0_step))+1
+  states:
+    coordinate:
+    - 450
+    - 518
+    rotation: 0
+    state: enabled
+- name: bb_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: samp_rate
+  states:
+    coordinate:
+    - 680
+    - 518
+    rotation: 0
+    state: enabled
+- name: bits_por_punto
+  id: variable
+  parameters:
+    comment: ''
+    value: '50000'
+  states:
+    coordinate:
+    - 910
+    - 518
+    rotation: 0
+    state: enabled
+- name: bits_guardia
+  id: variable
+  parameters:
+    comment: ''
+    value: '1000'
+  states:
+    coordinate:
+    - 1140
+    - 518
+    rotation: 0
+    state: enabled
+- name: delay_bits
+  id: variable
+  parameters:
+    comment: e_PRBS_Ref ya entrega la referencia alineada
+    value: '0'
+  states:
+    coordinate:
+    - 1370
+    - 518
+    rotation: 0
+    state: enabled
+- name: update_every
+  id: variable
+  parameters:
+    comment: ''
+    value: '1000'
+  states:
+    coordinate:
+    - 1600
+    - 518
+    rotation: 0
+    state: enabled
+- name: e_EbN0_Sweep
+  id: epy_block
+  parameters:
+    EbN0_min: EbN0_min
+    EbN0_max: EbN0_max
+    EbN0_step: EbN0_step
+    samp_rate: bb_rate
+    bit_rate: Rb
+    bits_por_punto: bits_por_punto
+    bits_guardia: bits_guardia
+    signal_power: '0.0'
+    seed: '2026'
+    _source_code: "\"\"\"\ne_EbN0_Sweep\nInstrumento para caracterización BER con un enlace SDR ya funcional.\n\nEntrada 0 : señal compleja I/Q recibida del SDR (preferiblemente DESPUÉS\n            de la adaptación radio_rate -> bb_rate).\nSalida 0  : la misma señal I/Q con AWGN adicional controlado.\nSalida 1  : valor instantáneo de Eb/N0 [dB] usado en el barrido.\n\nEl bloque NO sustituye el USRP/HackRF ni el receptor. Se inserta entre\nla salida I/Q del SDR y la entrada del receptor digital.\n\nEl barrido se hace por segmentos contiguos. Cada punto se mantiene durante:\n    bits_guardia + bits_por_punto\n\nLa potencia de ruido artificial se calcula a partir de la potencia promedio\nmedida ANTES de agregar el ruido:\n\n    Eb = Ps / Rb\n    N0 = Eb / (Eb/N0)\n    Pn = N0 * Fs\n\npor lo tanto:\n\n    Pn = Ps * Fs / (Rb * 10**(EbN0_dB/10))\n\nEl ruido complejo se genera con varianza total Pn.\n\"\"\"\n\nimport numpy as np\nfrom gnuradio import gr\n\n\nclass blk(gr.sync_block):\n    def\
+      \ __init__(self,\n                 EbN0_min=0.0,\n                 EbN0_max=14.0,\n                 EbN0_step=1.0,\n                 samp_rate=256000.0,\n                 bit_rate=64000.0,\n                 bits_por_punto=100000,\n                 bits_guardia=1000,\n                 signal_power=0.0,\n                 seed=2026):\n        gr.sync_block.__init__(\n            self,\n            name='e_EbN0_Sweep',\n            in_sig=[np.complex64],\n            out_sig=[np.complex64, np.float32]\n        )\n\n        self.EbN0_min = float(EbN0_min)\n        self.EbN0_max = float(EbN0_max)\n        self.EbN0_step = float(EbN0_step)\n        self.samp_rate = float(samp_rate)\n        self.bit_rate = float(bit_rate)\n        self.bits_por_punto = max(1, int(bits_por_punto))\n        self.bits_guardia = max(0, int(bits_guardia))\n        self.signal_power_cfg = float(signal_power)\n\n        if self.EbN0_step <= 0:\n            raise ValueError(\"EbN0_step debe ser > 0\")\n        if\
+      \ self.samp_rate <= 0 or self.bit_rate <= 0:\n            raise ValueError(\"samp_rate y bit_rate deben ser > 0\")\n        if self.EbN0_max < self.EbN0_min:\n            raise ValueError(\"EbN0_max debe ser >= EbN0_min\")\n\n        npts = int(round((self.EbN0_max-self.EbN0_min)/self.EbN0_step)) + 1\n        self.eb_axis = self.EbN0_min + self.EbN0_step*np.arange(npts, dtype=np.float64)\n        self.segment_bits = self.bits_guardia + self.bits_por_punto\n\n        self.sample_count = 0\n        self.power_sum = 0.0\n        self.power_count = 0\n        self.rng = np.random.default_rng(int(seed))\n\n    def _signal_power(self, x):\n        if self.signal_power_cfg > 0:\n            return self.signal_power_cfg\n\n        # Promedio acumulado de la señal recibida ANTES del ruido artificial.\n        self.power_sum += float(np.sum(np.abs(x.astype(np.complex128))**2))\n        self.power_count += len(x)\n        if self.power_count <= 0:\n            return 0.0\n        return max(self.power_sum/self.power_count,\
+      \ 1e-20)\n\n    def work(self, input_items, output_items):\n        x = input_items[0]\n        y = output_items[0]\n        eb_out = output_items[1]\n        n = len(x)\n        if n == 0:\n            return 0\n\n        Ps = self._signal_power(x)\n\n        # Índice absoluto de muestra -> índice equivalente de bit.\n        s = self.sample_count + np.arange(n, dtype=np.float64)\n        bit_index = np.floor(s*self.bit_rate/self.samp_rate).astype(np.int64)\n\n        segment_index = bit_index // self.segment_bits\n        point_index = np.mod(segment_index, len(self.eb_axis))\n        ebn0_db = self.eb_axis[point_index]\n        ebn0_lin = np.power(10.0, ebn0_db/10.0)\n\n        # Potencia total del ruido complejo por muestra.\n        noise_power = Ps*self.samp_rate/(self.bit_rate*ebn0_lin)\n        sigma_iq = np.sqrt(np.maximum(noise_power, 0.0)/2.0)\n\n        noise = (\n            self.rng.standard_normal(n)*sigma_iq\n            + 1j*self.rng.standard_normal(n)*sigma_iq\n \
+      \       ).astype(np.complex64)\n\n        y[:] = x + noise\n        eb_out[:] = ebn0_db.astype(np.float32)\n\n        self.sample_count += n\n        return n\n"
+  states:
+    coordinate:
+    - 826
+    - 718
+    rotation: 0
+    state: enabled
+- name: e_BER_Curve
+  id: epy_block
+  parameters:
+    EbN0_min: EbN0_min
+    EbN0_max: EbN0_max
+    EbN0_step: EbN0_step
+    bits_por_punto: bits_por_punto
+    bits_guardia: bits_guardia
+    delay_bits: delay_bits
+    update_every: update_every
+    _source_code: "\"\"\"\ne_BER_Curve\nAcumulador de curva BER para los sistemas de los estudiantes.\n\nEntrada 0 : bits transmitidos de referencia (byte 0/1).\nEntrada 1 : bits recuperados por el receptor (byte 0/1).\n\nSalida 0  : vector BER lineal.\nSalida 1  : vector log10(BER) para QT GUI Vector Sink.\n\nEl bloque usa exactamente el mismo barrido que e_EbN0_Sweep. Para cada punto:\n- ignora bits_guardia al comienzo del segmento;\n- compara bits_por_punto;\n- cuando el barrido vuelve a un punto, sigue acumulando estadísticas.\n\ndelay_bits retrasa internamente la referencia Tx para compensar el retardo\ndel receptor. Se ajusta primero en una condición limpia hasta lograr BER≈0.\n\nCuando todavía no se observa ningún error, la salida logarítmica utiliza\n3/N como cota superior aproximada para poder mostrar el punto sin afirmar\nque BER=0.\n\"\"\"\n\nimport numpy as np\nfrom collections import deque\nfrom gnuradio import gr\n\n\nclass blk(gr.sync_decimator):\n    def __init__(self,\n\
+      \                 EbN0_min=0.0,\n                 EbN0_max=14.0,\n                 EbN0_step=1.0,\n                 bits_por_punto=100000,\n                 bits_guardia=1000,\n                 delay_bits=0,\n                 update_every=1000):\n        self.EbN0_min = float(EbN0_min)\n        self.EbN0_max = float(EbN0_max)\n        self.EbN0_step = float(EbN0_step)\n        self.bits_por_punto = max(1, int(bits_por_punto))\n        self.bits_guardia = max(0, int(bits_guardia))\n        self.delay_bits = max(0, int(delay_bits))\n        self.update_every = max(1, int(update_every))\n\n        if self.EbN0_step <= 0:\n            raise ValueError(\"EbN0_step debe ser > 0\")\n        if self.EbN0_max < self.EbN0_min:\n            raise ValueError(\"EbN0_max debe ser >= EbN0_min\")\n\n        npts = int(round((self.EbN0_max-self.EbN0_min)/self.EbN0_step)) + 1\n        self.eb_axis = self.EbN0_min + self.EbN0_step*np.arange(npts, dtype=np.float64)\n        self.N = len(self.eb_axis)\n\
+      \        self.segment_bits = self.bits_guardia + self.bits_por_punto\n\n        gr.sync_decimator.__init__(\n            self,\n            name='e_BER_Curve',\n            in_sig=[np.int8, np.int8],\n            out_sig=[(np.float32, self.N), (np.float32, self.N)],\n            decim=self.update_every\n        )\n\n        self.tx_fifo = deque([0]*self.delay_bits)\n        self.raw_items = 0\n        self.valid_bit_index = 0\n\n        self.count = np.zeros(self.N, dtype=np.int64)\n        self.errors = np.zeros(self.N, dtype=np.int64)\n\n    def _process(self, tx, rx):\n        for t, r in zip(tx, rx):\n            tb = int(t) & 1\n            rb = int(r) & 1\n\n            if self.delay_bits > 0:\n                self.tx_fifo.append(tb)\n                t_aligned = self.tx_fifo.popleft()\n                if self.raw_items < self.delay_bits:\n                    self.raw_items += 1\n                    continue\n            else:\n                t_aligned = tb\n\n            bit_index\
+      \ = self.valid_bit_index\n            segment_index = bit_index // self.segment_bits\n            point_index = segment_index % self.N\n            pos = bit_index % self.segment_bits\n\n            # Dejar que filtros/sincronizadores se estabilicen después\n            # del cambio de nivel de ruido.\n            if pos >= self.bits_guardia:\n                self.count[point_index] += 1\n                if t_aligned != rb:\n                    self.errors[point_index] += 1\n\n            self.valid_bit_index += 1\n            self.raw_items += 1\n\n    def _vectors(self):\n        ber = np.zeros(self.N, dtype=np.float32)\n        logber = np.zeros(self.N, dtype=np.float32)\n\n        for i in range(self.N):\n            n = int(self.count[i])\n            e = int(self.errors[i])\n\n            if n <= 0:\n                ber[i] = 0.0\n                logber[i] = 0.0\n            elif e > 0:\n                b = e/float(n)\n                ber[i] = b\n                logber[i] = np.log10(max(b,\
+      \ 1e-12))\n            else:\n                # BER observado = 0; para la gráfica usamos una cota superior.\n                ber[i] = 0.0\n                upper = min(1.0, 3.0/float(n))\n                logber[i] = np.log10(max(upper, 1e-12))\n\n        return ber, logber\n\n    def work(self, input_items, output_items):\n        tx = input_items[0]\n        rx = input_items[1]\n        out_ber = output_items[0]\n        out_log = output_items[1]\n\n        nout = len(out_ber)\n        D = self.update_every\n\n        for k in range(nout):\n            a = k*D\n            b = min((k+1)*D, len(tx))\n            if a < b:\n                self._process(tx[a:b], rx[a:b])\n\n            ber, logber = self._vectors()\n            out_ber[k, :] = ber\n            out_log[k, :] = logber\n\n        return nout\n"
+  states:
+    coordinate:
+    - 1096
+    - 1708
+    rotation: 0
+    state: enabled
+- name: e_BER_CSV
+  id: epy_block
+  parameters:
+    EbN0_min: EbN0_min
+    EbN0_max: EbN0_max
+    EbN0_step: EbN0_step
+    nombre_archivo: '"curva_BER.csv"'
+    guardar_cada: '2.0'
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nfrom pathlib import Path\nimport csv\nimport time\n\n\nclass blk(gr.sync_block):\n\n    def __init__(self,\n                 EbN0_min=0.0,\n                 EbN0_max=14.0,\n                 EbN0_step=1.0,\n                 nombre_archivo=\"curva_BER.csv\",\n                 guardar_cada=2.0):\n\n        self.EbN0_min = float(EbN0_min)\n        self.EbN0_max = float(EbN0_max)\n        self.EbN0_step = float(EbN0_step)\n\n        self.N = int(round(\n            (self.EbN0_max - self.EbN0_min) /\n            self.EbN0_step\n        )) + 1\n\n        gr.sync_block.__init__(\n            self,\n            name='Guardar curva BER en CSV',\n            in_sig=[\n                (np.float32, self.N),\n                (np.float32, self.N)\n            ],\n            out_sig=None\n        )\n\n        self.nombre_archivo = str(nombre_archivo)\n        self.guardar_cada = float(guardar_cada)\n\n        # El Embedded Python Block se\
+      \ genera junto al flowgraph de GNU Radio.\n        # Por ello el CSV queda en la misma carpeta contenedora del .grc/.py.\n        self.carpeta = Path(__file__).resolve().parent\n        self.ruta_csv = self.carpeta / self.nombre_archivo\n\n        self.ultimo_guardado = 0.0\n        self.ebn0 = self.EbN0_min + self.EbN0_step * np.arange(self.N)\n\n        print(\"CSV BER se guardará en:\")\n        print(self.ruta_csv)\n\n    def guardar(self, ber, logber):\n        archivo_temporal = self.ruta_csv.with_suffix(\".tmp\")\n\n        with open(archivo_temporal, \"w\", newline=\"\", encoding=\"utf-8\") as f:\n            writer = csv.writer(f)\n            writer.writerow([\"EbN0_dB\", \"BER\", \"log10_BER\"])\n\n            for eb, b, lb in zip(self.ebn0, ber, logber):\n                writer.writerow([\n                    f\"{eb:.6f}\",\n                    f\"{float(b):.12e}\",\n                    f\"{float(lb):.12e}\"\n                ])\n\n        archivo_temporal.replace(self.ruta_csv)\n\
+      \n    def work(self, input_items, output_items):\n        ber_vectors = input_items[0]\n        log_vectors = input_items[1]\n\n        if len(ber_vectors) == 0:\n            return 0\n\n        ahora = time.time()\n        if ahora - self.ultimo_guardado >= self.guardar_cada:\n            self.guardar(ber_vectors[-1], log_vectors[-1])\n            self.ultimo_guardado = ahora\n\n        return len(ber_vectors)\n"
+  states:
+    coordinate:
+    - 1366
+    - 1708
+    rotation: 0
+    state: enabled
+- name: e_PRBS_Ref
+  id: epy_block
+  parameters:
+    ventana: '1022'
+    umbral_relock: '0.40'
+    _source_code: "\"\"\"\ne_PRBS_Ref (Grupo 6)\nReferencia de bits Tx alineada con los bits recuperados.\n\nEl transmisor envía en bucle una PRBS9 conocida (511 bits). Este bloque:\n1) busca, sobre los primeros 'ventana' bits recibidos, la fase de la PRBS9 que\n   más coincide (equivale a ajustar delay_bits automáticamente);\n2) vigila la tasa de error en bloques de 511 bits; si supera 'umbral_relock'\n   (p. ej. por un deslizamiento de bit del sincronizador de símbolo con\n   Eb/N0 bajo), vuelve a buscar la fase.\n\nEntrada 0: bits recuperados por el receptor (byte 0/1).\nSalida 0 : bits de referencia Tx alineados (byte 0/1)  -> e_BER_Curve entrada 0.\nSalida 1 : los mismos bits recuperados                  -> e_BER_Curve entrada 1.\n\"\"\"\nimport numpy as np\nfrom gnuradio import gr\n\n\ndef prbs9():\n    s = [1] * 9\n    out = []\n    for _ in range(511):\n        b = s[8] ^ s[4]\n        out.append(s[8])\n        s = [b] + s[:8]\n    return np.array(out, dtype=np.int8)\n\n\nclass blk(gr.sync_block):\n\
+      \    def __init__(self, ventana=1022, umbral_relock=0.40):\n        gr.sync_block.__init__(self, name='e_PRBS_Ref',\n                               in_sig=[np.int8], out_sig=[np.int8, np.int8])\n        self.seq = prbs9()\n        self.L = len(self.seq)\n        self.ventana = max(self.L, int(ventana))\n        self.umbral = float(umbral_relock)\n        # matriz con las 511 rotaciones de la PRBS9 para buscar la fase rápido\n        self.rot = np.array([np.roll(self.seq, -k) for k in range(self.L)], dtype=np.int8)\n        self.hist = np.zeros(0, dtype=np.int8)\n        self.fase = None      # fase de la PRBS9 que corresponde al bit n = 0\n        self.n = 0\n        self.err_blk = 0\n        self.cnt_blk = 0\n        self.relocks = 0\n\n    def _buscar(self, rx, n0):\n        \"\"\"rx: últimos bits recibidos; n0: índice absoluto del primer bit de rx.\"\"\"\n        L = self.L\n        m = len(rx) // L * L\n        r = rx[:m].reshape(-1, L)\n        coinc = np.zeros(L)\n        for\
+      \ fila in r:\n            coinc += (self.rot == fila).sum(axis=1)\n        k = int(np.argmax(coinc))\n        self.fase = (k - n0) % L\n        return 100.0 * coinc[k] / m\n\n    def work(self, input_items, output_items):\n        x = np.asarray(input_items[0], dtype=np.int8) & 1\n        n = len(x)\n        out_ref = output_items[0]\n        if self.fase is None:\n            self.hist = np.concatenate([self.hist, x])\n            if len(self.hist) >= self.ventana:\n                p = self._buscar(self.hist[:self.ventana], self.n - (len(self.hist) - n))\n                print('[e_PRBS_Ref] enganche inicial: fase=%d, coincidencia=%.1f %%' % (self.fase, p))\n                self.hist = np.zeros(0, dtype=np.int8)\n        if self.fase is None:\n            out_ref[:n] = x  # todavía sin referencia\n        else:\n            ref = self.seq[(self.fase + self.n + np.arange(n)) % self.L]\n            out_ref[:n] = ref\n            self.err_blk += int(np.sum(ref != x))\n            self.cnt_blk\
+      \ += n\n            self.hist = np.concatenate([self.hist, x])[-2 * self.L:]\n            if self.cnt_blk >= self.L:\n                if self.err_blk > self.umbral * self.cnt_blk and len(self.hist) >= self.L:\n                    h = self.hist[-self.L:]\n                    p = self._buscar(h, self.n + n - self.L)\n                    self.relocks += 1\n                    print('[e_PRBS_Ref] reenganche #%d: fase=%d, coincidencia=%.1f %%'\n                          % (self.relocks, self.fase, p))\n                self.err_blk = 0\n                self.cnt_blk = 0\n        output_items[1][:n] = x\n        self.n += n\n        return n\n"
+  states:
+    coordinate:
+    - 826
+    - 1708
+    rotation: 0
+    state: enabled
+- name: curva_ber
+  id: qtgui_vector_sink_f
+  parameters:
+    vlen: N_EbN0
+    name: '"Curva BER experimental vs Eb/N0 - Grupo 6 BFSK"'
+    x_axis_label: '"Eb/N0 [dB]"'
+    y_axis_label: '"log10(BER)"'
+    x_start: EbN0_min
+    x_step: EbN0_step
+    x_units: '"dB"'
+    y_units: '""'
+    ymin: '-7'
+    ymax: '0'
+    grid: 'True'
+    autoscale: 'False'
+    average: '1.0'
+    nconnections: '1'
+    ref_level: '0'
+    showports: 'False'
+    update_time: '0.2'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1096
+    - 1968
+    rotation: 0
+    state: enabled
+- name: null_ebn0
+  id: blocks_null_sink
+  parameters:
+    type: float
+    vlen: '1'
+    num_inputs: '1'
+    bus_structure_sink: '[[0,],]'
+  states:
+    coordinate:
+    - 826
+    - 1498
+    rotation: 0
+    state: enabled
+- name: filtro_canal
+  id: fir_filter_xxx
+  parameters:
+    type: ccf
+    decim: rx_decim
+    taps: chan_taps
+    samp_delay: '0'
+  states:
+    coordinate:
+    - 1096
+    - 718
+    rotation: 0
+    state: enabled
+- name: discriminador_frecuencia
+  id: analog_quadrature_demod_cf
+  parameters:
+    gain: rx_rate/(2*math.pi*fsk_deviation)
+  states:
+    coordinate:
+    - 1366
+    - 718
+    rotation: 0
+    state: enabled
+- name: integrador_simbolo
+  id: blocks_moving_average_xx
+  parameters:
+    type: float
+    length: sps_rx
+    scale: 1.0/sps_rx
+    max_iter: '4000'
+    vlen: '1'
+  states:
+    coordinate:
+    - 16
+    - 1708
+    rotation: 0
+    state: enabled
+- name: sincronizador_simbolo
+  id: digital_symbol_sync_xx
+  parameters:
+    type: ff
+    ted_type: digital.TED_GARDNER
+    constellation: digital.constellation_bpsk().base()
+    sps: sps_rx
+    ted_gain: '1.0'
+    loop_bw: '0.005'
+    damping: '1.0'
+    max_dev: '1.5'
+    osps: '1'
+    resamp_type: digital.IR_MMSE_8TAP
+    nfilters: '128'
+    pfb_mf_taps: '[]'
+  states:
+    coordinate:
+    - 286
+    - 1708
+    rotation: 0
+    state: enabled
+- name: decision_umbral_0
+  id: digital_binary_slicer_fb
+  parameters: {}
+  states:
+    coordinate:
+    - 556
+    - 1708
+    rotation: 0
+    state: enabled
+- name: quitar_offset_dc
+  id: dc_blocker_xx
+  parameters:
+    type: ff
+    length: '1024'
+    long_form: 'True'
+  states:
+    coordinate:
+    - 1636
+    - 718
+    rotation: 0
+    state: enabled
+- name: hz_por_unidad
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: float
+    const: fsk_deviation
+    vlen: '1'
+  states:
+    coordinate:
+    - 1636
+    - 868
+    rotation: 0
+    state: enabled
+- name: offset_estimado
+  id: qtgui_number_sink
+  parameters:
+    type: float
+    name: '"Offset de frecuencia estimado (media del discriminador)"'
+    avg: '0.001'
+    autoscale: 'False'
+    min: '-40000'
+    max: '40000'
+    unit1: Hz
+    factor1: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    nconnections: '1'
+    update_time: '0.20'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1636
+    - 1018
+    rotation: 0
+    state: enabled
+- name: frecuencia_instantanea
+  id: qtgui_time_sink_x
+  parameters:
+    name: '"Rx: salida del discriminador y del integrador [x Δf]"'
+    nconnections: '2'
+    type: float
+    size: '1024'
+    srate: rx_rate
+    autoscale: 'False'
+    ymin: '-1.5'
+    ymax: '1.5'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'True'
+    gui_hint: ''
+    label1: '"Discriminador"'
+    label2: '"Integrado (Ts)"'
+  states:
+    coordinate:
+    - 16
+    - 1858
+    rotation: 0
+    state: enabled
+- name: ojo_integrado
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '512'
+    samp_per_symbol: sps_rx
+    srate: rx_rate
+    name: '"Diagrama de ojo (salida del integrador)"'
+    nconnections: '1'
+    autoscale: 'False'
+    ymin: '-1.5'
+    ymax: '1.5'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'False'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 16
+    - 2118
+    rotation: 0
+    state: enabled
+- name: bits_a_float_rx
+  id: blocks_char_to_float
+  parameters:
+    scale: '1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 556
+    - 1858
+    rotation: 0
+    state: enabled
+- name: bits_a_float_tx
+  id: blocks_char_to_float
+  parameters:
+    scale: '1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 826
+    - 1968
+    rotation: 0
+    state: enabled
+- name: bits_tx_vs_rx
+  id: qtgui_time_sink_x
+  parameters:
+    name: '"Bits Tx (referencia) vs bits Rx recuperados"'
+    nconnections: '2'
+    type: float
+    size: '128'
+    srate: symbol_rate
+    autoscale: 'False'
+    ymin: '-0.5'
+    ymax: '1.5'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'True'
+    gui_hint: ''
+    label1: '"Bits Rx"'
+    label2: '"Bits Tx"'
+  states:
+    coordinate:
+    - 1366
+    - 1968
+    rotation: 0
+    state: enabled
+connections:
+- - hackrf_source
+  - '0'
+  - rx_desplaza
+  - '0'
+- - rx_desplaza
+  - '0'
+  - adaptacion_tasa_rx
+  - '0'
+- - rx_desplaza
+  - '0'
+  - psd_rx_radio
+  - '0'
+- - adaptacion_tasa_rx
+  - '0'
+  - e_EbN0_Sweep
+  - '0'
+- - e_EbN0_Sweep
+  - '1'
+  - null_ebn0
+  - '0'
+- - decision_umbral_0
+  - '0'
+  - e_PRBS_Ref
+  - '0'
+- - e_PRBS_Ref
+  - '0'
+  - e_BER_Curve
+  - '0'
+- - e_PRBS_Ref
+  - '1'
+  - e_BER_Curve
+  - '1'
+- - e_BER_Curve
+  - '1'
+  - curva_ber
+  - '0'
+- - e_BER_Curve
+  - '0'
+  - e_BER_CSV
+  - '0'
+- - e_BER_Curve
+  - '1'
+  - e_BER_CSV
+  - '1'
+- - e_PRBS_Ref
+  - '0'
+  - bits_a_float_tx
+  - '0'
+- - e_EbN0_Sweep
+  - '0'
+  - psd_rx_bb
+  - '0'
+- - e_EbN0_Sweep
+  - '0'
+  - rx_iq
+  - '0'
+- - e_EbN0_Sweep
+  - '0'
+  - filtro_canal
+  - '0'
+- - filtro_canal
+  - '0'
+  - discriminador_frecuencia
+  - '0'
+- - integrador_simbolo
+  - '0'
+  - sincronizador_simbolo
+  - '0'
+- - sincronizador_simbolo
+  - '0'
+  - decision_umbral_0
+  - '0'
+- - discriminador_frecuencia
+  - '0'
+  - quitar_offset_dc
+  - '0'
+- - quitar_offset_dc
+  - '0'
+  - integrador_simbolo
+  - '0'
+- - discriminador_frecuencia
+  - '0'
+  - hz_por_unidad
+  - '0'
+- - hz_por_unidad
+  - '0'
+  - offset_estimado
+  - '0'
+- - discriminador_frecuencia
+  - '0'
+  - frecuencia_instantanea
+  - '0'
+- - integrador_simbolo
+  - '0'
+  - frecuencia_instantanea
+  - '1'
+- - integrador_simbolo
+  - '0'
+  - ojo_integrado
+  - '0'
+- - decision_umbral_0
+  - '0'
+  - bits_a_float_rx
+  - '0'
+- - bits_a_float_rx
+  - '0'
+  - bits_tx_vs_rx
+  - '0'
+- - bits_a_float_tx
+  - '0'
+  - bits_tx_vs_rx
+  - '1'
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

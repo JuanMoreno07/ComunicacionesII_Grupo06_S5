@@ -1,0 +1,5 @@
+prueba,fsk_deviation_Hz,noise_voltage,h,BW_Carson_kHz,BW99_medido_kHz,EbN0_dB,bits_comparados,errores
+ref,5000,0.0,1,20,21.4,inf,19477,0
+suave,5000,0.05,1,20,21.4,46.0,19477,0
+media,10000,0.1,2,30,33.4,40.0,19477,0
+fuerte,20000,0.2,4,50,56.8,34.0,19477,0

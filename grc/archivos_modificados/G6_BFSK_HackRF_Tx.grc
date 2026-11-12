@@ -1,0 +1,556 @@
+options:
+  parameters:
+    author: Grupo 6 - Juan Pablo Moreno Peña; Juan David Ruiz Higuera
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    description: Transmisor BFSK (PRBS9) -> Rational Resampler 2/1 -> desplazamiento lo_off -> Osmocom Sink.
+    generate_options: qt_gui
+    id: G6_BFSK_HackRF_Tx
+    title: Grupo 6 - Transmisor BFSK con HackRF One
+    output_language: python
+    placement: (0,0)
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    window_size: (1500,900)
+    max_nouts: '0'
+    realtime_scheduling: ''
+    qt_qss_theme: ''
+    thread_safe_setters: ''
+    hier_block_src_path: '.:'
+    copyright: ''
+    gen_linking: dynamic
+    gen_cmake: 'On'
+    cmake_opt: ''
+  states:
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: import_math
+  id: import
+  parameters:
+    imports: 'import math
+
+      from gnuradio.filter import firdes'
+  states:
+    coordinate:
+    - 220
+    - 8
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: fs = Rs*SPS = 10000*100 (paquete C, GRC base FSK)
+    value: 1e6
+  states:
+    coordinate:
+    - 450
+    - 8
+    rotation: 0
+    state: enabled
+- name: sps
+  id: variable
+  parameters:
+    comment: ''
+    value: '100'
+  states:
+    coordinate:
+    - 680
+    - 8
+    rotation: 0
+    state: enabled
+- name: symbol_rate
+  id: variable
+  parameters:
+    comment: Rs = 10 kBd (fija; selector guiado S5)
+    value: samp_rate/sps
+  states:
+    coordinate:
+    - 910
+    - 8
+    rotation: 0
+    state: enabled
+- name: Rb
+  id: variable
+  parameters:
+    comment: 'BFSK binaria: Rb = Rs'
+    value: symbol_rate
+  states:
+    coordinate:
+    - 1140
+    - 8
+    rotation: 0
+    state: enabled
+- name: fsk_deviation
+  id: variable_qtgui_range
+  parameters:
+    label: Desviación FSK Δf [Hz] (variable del experimento)
+    value: '10000'
+    start: '1000'
+    stop: '40000'
+    step: '1000'
+    rangeType: float
+    widget: counter_slider
+    orient: QtCore.Qt.Horizontal
+    min_len: '200'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1370
+    - 8
+    rotation: 0
+    state: enabled
+- name: rx_decim
+  id: variable
+  parameters:
+    comment: decimación del filtro de canal del receptor
+    value: '10'
+  states:
+    coordinate:
+    - 1600
+    - 8
+    rotation: 0
+    state: enabled
+- name: rx_rate
+  id: variable
+  parameters:
+    comment: 100 kS/s en el receptor
+    value: samp_rate/rx_decim
+  states:
+    coordinate:
+    - 1830
+    - 8
+    rotation: 0
+    state: enabled
+- name: sps_rx
+  id: variable
+  parameters:
+    comment: 10 muestras/símbolo en el receptor
+    value: sps//rx_decim
+  states:
+    coordinate:
+    - 220
+    - 178
+    rotation: 0
+    state: enabled
+- name: h_fsk
+  id: variable
+  parameters:
+    comment: índice de modulación
+    value: 2*fsk_deviation/symbol_rate
+  states:
+    coordinate:
+    - 450
+    - 178
+    rotation: 0
+    state: enabled
+- name: carson_bw
+  id: variable
+  parameters:
+    comment: BW de Carson
+    value: 2*(fsk_deviation + Rb/2)
+  states:
+    coordinate:
+    - 680
+    - 178
+    rotation: 0
+    state: enabled
+- name: chan_taps
+  id: variable
+  parameters:
+    comment: 'Filtro de canal Rx: corte = BW Carson / 2'
+    value: firdes.low_pass(1.0, samp_rate, fsk_deviation + symbol_rate/2, symbol_rate/2)
+  states:
+    coordinate:
+    - 910
+    - 178
+    rotation: 0
+    state: enabled
+- name: prbs9
+  id: variable
+  parameters:
+    comment: PRBS9 (511 bits) conocida por Tx y Rx
+    value: '[1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,0,1,1,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,1,1,0,1,1,0,1,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,1,1,0,1,1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,1,1,0,0,0,1,1,0,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,1,0,0,0,0,1,0,0,1,1,1,0,0,1,0,1,0,1,0,1,1,0,0,0,0,1,1,0,1,1,1,1,0,1,0,0,1,1,0,1,1,1,0,0,1,0,0,0,1,0,1,0,0,0,0,1,0,1,0,1,1,0,1,0,0,1,1,1,1,1,1,0,1,1,0,0,1,0,0,1,0,0,1,0,1,1,0,1,1,1,1,1,1,0,0,1,0,0,1,1,0,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,1,0,1,0,0,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,1,0,1,0,0,0,1,0,1,1,0,0,0,1,1,1,0,1,0,1,1,0,0,1,0,1,1,0,0,1,1,1,1,0,0,0,1,1,1,1,1,0,1,1,1,0,1,0,0,0,0,0,1,1,0,1,0,1,1,0,1,1,0,1,1,1,0,1,1,0,0,0,0,0,1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,0,1,0,0,0,0,0,0,1,0,1,0,0,1,0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,1,1,1,0,1,0,0,1,0,0,1,1,1,1,0,1,0,1,1,1,0,1,0,1,0,0,0,1,0,0,1,0,0,0,0,1,1,0,0,1,1,1,0,0,0,0,1,0,1,1,1,1,0,1,1,0,1,1,0,0,1,1,0,1,0,0,0,0,1,1,1,0,1,1,1,1,0,0,0,0]'
+  states:
+    coordinate:
+    - 1140
+    - 178
+    rotation: 0
+    state: enabled
+- name: fc
+  id: variable
+  parameters:
+    comment: frecuencia RF central (la usada en la práctica)
+    value: 960e6
+  states:
+    coordinate:
+    - 1370
+    - 178
+    rotation: 0
+    state: enabled
+- name: lo_off
+  id: variable
+  parameters:
+    comment: offset para alejar la señal del pico DC del HackRF
+    value: 200e3
+  states:
+    coordinate:
+    - 1600
+    - 178
+    rotation: 0
+    state: enabled
+- name: radio_rate
+  id: variable
+  parameters:
+    comment: tasa del HackRF = samp_rate*2/1
+    value: 2e6
+  states:
+    coordinate:
+    - 1830
+    - 178
+    rotation: 0
+    state: enabled
+- name: interp
+  id: variable
+  parameters:
+    comment: ''
+    value: '2'
+  states:
+    coordinate:
+    - 220
+    - 348
+    rotation: 0
+    state: enabled
+- name: decim
+  id: variable
+  parameters:
+    comment: ''
+    value: '1'
+  states:
+    coordinate:
+    - 450
+    - 348
+    rotation: 0
+    state: enabled
+- name: hackrf_tx
+  id: variable
+  parameters:
+    comment: ''
+    value: '"hackrf=0"'
+  states:
+    coordinate:
+    - 680
+    - 348
+    rotation: 0
+    state: enabled
+- name: tx_amp
+  id: variable_qtgui_range
+  parameters:
+    label: Amplitud digital Tx (pico < 1)
+    value: '0.5'
+    start: '0.05'
+    stop: '1.0'
+    step: '0.05'
+    rangeType: float
+    widget: counter_slider
+    orient: QtCore.Qt.Horizontal
+    min_len: '200'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 910
+    - 348
+    rotation: 0
+    state: enabled
+- name: tx_vga
+  id: variable_qtgui_range
+  parameters:
+    label: Tx IF gain HackRF (0-47 dB)
+    value: '20'
+    start: '0'
+    stop: '47'
+    step: '1'
+    rangeType: float
+    widget: counter_slider
+    orient: QtCore.Qt.Horizontal
+    min_len: '200'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1140
+    - 348
+    rotation: 0
+    state: enabled
+- name: fuente_prbs9
+  id: blocks_vector_source_x
+  parameters:
+    type: byte
+    vector: prbs9
+    repeat: 'True'
+    tags: '[]'
+    vlen: '1'
+  states:
+    coordinate:
+    - 16
+    - 548
+    rotation: 0
+    state: enabled
+- name: nrz_mapper
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    in_type: byte
+    out_type: float
+    symbol_table: '[-1.0, 1.0]'
+    dimension: '1'
+    num_ports: '1'
+  states:
+    coordinate:
+    - 286
+    - 548
+    rotation: 0
+    state: enabled
+- name: symbol_repeat
+  id: blocks_repeat
+  parameters:
+    type: float
+    interp: sps
+    vlen: '1'
+  states:
+    coordinate:
+    - 556
+    - 548
+    rotation: 0
+    state: enabled
+- name: fsk_modulator
+  id: analog_frequency_modulator_fc
+  parameters:
+    sensitivity: 2*math.pi*fsk_deviation/samp_rate
+  states:
+    coordinate:
+    - 826
+    - 548
+    rotation: 0
+    state: enabled
+- name: tx_escala
+  id: blocks_multiply_const_vxx
+  parameters:
+    type: complex
+    const: tx_amp
+    vlen: '1'
+  states:
+    coordinate:
+    - 1096
+    - 548
+    rotation: 0
+    state: enabled
+- name: adaptacion_tasa_tx
+  id: rational_resampler_xxx
+  parameters:
+    type: ccc
+    interp: interp
+    decim: decim
+    taps: '[]'
+    fbw: '0'
+  states:
+    coordinate:
+    - 1366
+    - 548
+    rotation: 0
+    state: enabled
+- name: tx_desplaza
+  id: freq_xlating_fir_filter_xxx
+  parameters:
+    type: ccc
+    decim: '1'
+    taps: '[1]'
+    center_freq: -lo_off
+    samp_rate: radio_rate
+  states:
+    coordinate:
+    - 1636
+    - 548
+    rotation: 0
+    state: enabled
+- name: hackrf_sink
+  id: osmosdr_sink
+  parameters:
+    type: fc32
+    args: hackrf_tx
+    nchan: '1'
+    sample_rate: radio_rate
+    freq0: fc - lo_off
+    corr0: '0'
+    gain0: '0'
+    if_gain0: tx_vga
+    bb_gain0: '0'
+    ant0: ''
+    bw0: '0'
+    num_mboards: '1'
+    sync: none
+  states:
+    coordinate:
+    - 16
+    - 1688
+    rotation: 0
+    state: enabled
+- name: psd_tx_bb
+  id: qtgui_freq_sink_x
+  parameters:
+    name: '"PSD Tx en banda base (bb_rate)"'
+    nconnections: '1'
+    type: complex
+    fftsize: '2048'
+    bw: samp_rate
+    fc: '0'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    average: '0.2'
+    grid: 'True'
+    ymin: '-120'
+    ymax: '10'
+    units: dB
+    update_time: '0.10'
+    gui_hint: ''
+    freqhalf: 'True'
+  states:
+    coordinate:
+    - 1096
+    - 848
+    rotation: 0
+    state: enabled
+- name: psd_tx_radio
+  id: qtgui_freq_sink_x
+  parameters:
+    name: '"PSD entregada al HackRF (radio_rate)"'
+    nconnections: '1'
+    type: complex
+    fftsize: '2048'
+    bw: radio_rate
+    fc: fc
+    wintype: window.WIN_BLACKMAN_hARRIS
+    average: '0.2'
+    grid: 'True'
+    ymin: '-120'
+    ymax: '10'
+    units: dB
+    update_time: '0.10'
+    gui_hint: ''
+    freqhalf: 'True'
+  states:
+    coordinate:
+    - 1636
+    - 698
+    rotation: 0
+    state: enabled
+- name: tx_iq
+  id: qtgui_time_sink_x
+  parameters:
+    name: '"Envolvente compleja Tx (I/Q)"'
+    nconnections: '1'
+    type: complex
+    size: '2048'
+    srate: samp_rate
+    autoscale: 'False'
+    ymin: '-1.5'
+    ymax: '1.5'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'True'
+    gui_hint: ''
+    label1: '"I"'
+    label2: '"Q"'
+  states:
+    coordinate:
+    - 1096
+    - 1108
+    rotation: 0
+    state: enabled
+- name: observador_tx
+  id: analog_quadrature_demod_cf
+  parameters:
+    gain: samp_rate/(2*math.pi*fsk_deviation)
+  states:
+    coordinate:
+    - 1096
+    - 698
+    rotation: 0
+    state: enabled
+- name: frec_inst_tx
+  id: qtgui_time_sink_x
+  parameters:
+    name: '"Frecuencia instantánea Tx [x Δf]"'
+    nconnections: '1'
+    type: float
+    size: '2048'
+    srate: samp_rate
+    autoscale: 'False'
+    ymin: '-1.5'
+    ymax: '1.5'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'True'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1096
+    - 1368
+    rotation: 0
+    state: enabled
+connections:
+- - fuente_prbs9
+  - '0'
+  - nrz_mapper
+  - '0'
+- - nrz_mapper
+  - '0'
+  - symbol_repeat
+  - '0'
+- - symbol_repeat
+  - '0'
+  - fsk_modulator
+  - '0'
+- - fsk_modulator
+  - '0'
+  - tx_escala
+  - '0'
+- - tx_escala
+  - '0'
+  - adaptacion_tasa_tx
+  - '0'
+- - adaptacion_tasa_tx
+  - '0'
+  - tx_desplaza
+  - '0'
+- - tx_desplaza
+  - '0'
+  - hackrf_sink
+  - '0'
+- - tx_escala
+  - '0'
+  - psd_tx_bb
+  - '0'
+- - tx_desplaza
+  - '0'
+  - psd_tx_radio
+  - '0'
+- - tx_escala
+  - '0'
+  - tx_iq
+  - '0'
+- - fsk_modulator
+  - '0'
+  - observador_tx
+  - '0'
+- - observador_tx
+  - '0'
+  - frec_inst_tx
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

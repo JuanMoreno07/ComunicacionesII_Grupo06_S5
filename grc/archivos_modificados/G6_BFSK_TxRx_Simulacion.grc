@@ -1,0 +1,612 @@
+options:
+  parameters:
+    author: Grupo 6 - Juan Pablo Moreno Peña; Juan David Ruiz Higuera
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    description: 'S5 Telemetría binaria BFSK. Rs=10 kBd, SPS=100, fs=1 MS/s. Variable del experimento: Δf (5/10/20 kHz). Receptor: filtro de canal (Carson, decima x10) + discriminador + integrador de símbolo + Gardner + umbral 0.'
+    generate_options: qt_gui
+    id: G6_BFSK_TxRx_Simulacion
+    title: Grupo 6 - BFSK Tx-canal AWGN-Rx (simulación)
+    output_language: python
+    placement: (0,0)
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    window_size: (1500,900)
+    max_nouts: '0'
+    realtime_scheduling: ''
+    qt_qss_theme: ''
+    thread_safe_setters: ''
+    hier_block_src_path: '.:'
+    copyright: ''
+    gen_linking: dynamic
+    gen_cmake: 'On'
+    cmake_opt: ''
+  states:
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: import_math
+  id: import
+  parameters:
+    imports: 'import math
+
+      from gnuradio.filter import firdes'
+  states:
+    coordinate:
+    - 220
+    - 8
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: fs = Rs*SPS = 10000*100 (paquete C, GRC base FSK)
+    value: 1e6
+  states:
+    coordinate:
+    - 450
+    - 8
+    rotation: 0
+    state: enabled
+- name: sps
+  id: variable
+  parameters:
+    comment: ''
+    value: '100'
+  states:
+    coordinate:
+    - 680
+    - 8
+    rotation: 0
+    state: enabled
+- name: symbol_rate
+  id: variable
+  parameters:
+    comment: Rs = 10 kBd (fija; selector guiado S5)
+    value: samp_rate/sps
+  states:
+    coordinate:
+    - 910
+    - 8
+    rotation: 0
+    state: enabled
+- name: Rb
+  id: variable
+  parameters:
+    comment: 'BFSK binaria: Rb = Rs'
+    value: symbol_rate
+  states:
+    coordinate:
+    - 1140
+    - 8
+    rotation: 0
+    state: enabled
+- name: fsk_deviation
+  id: variable_qtgui_range
+  parameters:
+    label: Desviación FSK Δf [Hz] (variable del experimento)
+    value: '10000'
+    start: '1000'
+    stop: '40000'
+    step: '1000'
+    rangeType: float
+    widget: counter_slider
+    orient: QtCore.Qt.Horizontal
+    min_len: '200'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1370
+    - 8
+    rotation: 0
+    state: enabled
+- name: rx_decim
+  id: variable
+  parameters:
+    comment: decimación del filtro de canal del receptor
+    value: '10'
+  states:
+    coordinate:
+    - 1600
+    - 8
+    rotation: 0
+    state: enabled
+- name: rx_rate
+  id: variable
+  parameters:
+    comment: 100 kS/s en el receptor
+    value: samp_rate/rx_decim
+  states:
+    coordinate:
+    - 1830
+    - 8
+    rotation: 0
+    state: enabled
+- name: sps_rx
+  id: variable
+  parameters:
+    comment: 10 muestras/símbolo en el receptor
+    value: sps//rx_decim
+  states:
+    coordinate:
+    - 220
+    - 178
+    rotation: 0
+    state: enabled
+- name: h_fsk
+  id: variable
+  parameters:
+    comment: índice de modulación
+    value: 2*fsk_deviation/symbol_rate
+  states:
+    coordinate:
+    - 450
+    - 178
+    rotation: 0
+    state: enabled
+- name: carson_bw
+  id: variable
+  parameters:
+    comment: BW de Carson
+    value: 2*(fsk_deviation + Rb/2)
+  states:
+    coordinate:
+    - 680
+    - 178
+    rotation: 0
+    state: enabled
+- name: chan_taps
+  id: variable
+  parameters:
+    comment: 'Filtro de canal Rx: corte = BW Carson / 2'
+    value: firdes.low_pass(1.0, samp_rate, fsk_deviation + symbol_rate/2, symbol_rate/2)
+  states:
+    coordinate:
+    - 910
+    - 178
+    rotation: 0
+    state: enabled
+- name: prbs9
+  id: variable
+  parameters:
+    comment: PRBS9 (511 bits) conocida por Tx y Rx
+    value: '[1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,0,1,1,1,1,1,0,0,0,1,0,1,1,1,0,0,1,1,0,0,1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,1,1,0,1,1,0,1,0,0,0,1,1,1,1,0,0,1,1,1,1,1,0,0,1,1,0,1,1,0,0,0,1,0,1,0,1,0,0,1,0,0,0,1,1,1,0,0,0,1,1,0,1,1,0,1,0,1,0,1,1,1,0,0,0,1,0,0,1,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1,1,0,0,0,0,1,0,0,1,1,1,0,0,1,0,1,0,1,0,1,1,0,0,0,0,1,1,0,1,1,1,1,0,1,0,0,1,1,0,1,1,1,0,0,1,0,0,0,1,0,1,0,0,0,0,1,0,1,0,1,1,0,1,0,0,1,1,1,1,1,1,0,1,1,0,0,1,0,0,1,0,0,1,0,1,1,0,1,1,1,1,1,1,0,0,1,0,0,1,1,0,1,0,1,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,1,0,1,0,0,0,1,1,0,1,0,0,1,0,1,1,1,1,1,1,1,0,1,0,0,0,1,0,1,1,0,0,0,1,1,1,0,1,0,1,1,0,0,1,0,1,1,0,0,1,1,1,1,0,0,0,1,1,1,1,1,0,1,1,1,0,1,0,0,0,0,0,1,1,0,1,0,1,1,0,1,1,0,1,1,1,0,1,1,0,0,0,0,0,1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,0,1,0,0,0,0,0,0,1,0,1,0,0,1,0,1,0,1,1,1,1,0,0,1,0,1,1,1,0,1,1,1,0,0,0,0,0,0,1,1,1,0,0,1,1,1,0,1,0,0,1,0,0,1,1,1,1,0,1,0,1,1,1,0,1,0,1,0,0,0,1,0,0,1,0,0,0,0,1,1,0,0,1,1,1,0,0,0,0,1,0,1,1,1,1,0,1,1,0,1,1,0,0,1,1,0,1,0,0,0,0,1,1,1,0,1,1,1,1,0,0,0,0]'
+  states:
+    coordinate:
+    - 1140
+    - 178
+    rotation: 0
+    state: enabled
+- name: noise_voltage
+  id: variable_qtgui_range
+  parameters:
+    label: Ruido AWGN noise_voltage
+    value: '0.1'
+    start: '0.0'
+    stop: '5.0'
+    step: '0.05'
+    rangeType: float
+    widget: counter_slider
+    orient: QtCore.Qt.Horizontal
+    min_len: '200'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 1370
+    - 178
+    rotation: 0
+    state: enabled
+- name: delay_bits
+  id: variable
+  parameters:
+    comment: retardo del receptor en bits (medido)
+    value: '3'
+  states:
+    coordinate:
+    - 1600
+    - 178
+    rotation: 0
+    state: enabled
+- name: fuente_prbs9
+  id: blocks_vector_source_x
+  parameters:
+    type: byte
+    vector: prbs9
+    repeat: 'True'
+    tags: '[]'
+    vlen: '1'
+  states:
+    coordinate:
+    - 16
+    - 378
+    rotation: 0
+    state: enabled
+- name: nrz_mapper
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    in_type: byte
+    out_type: float
+    symbol_table: '[-1.0, 1.0]'
+    dimension: '1'
+    num_ports: '1'
+  states:
+    coordinate:
+    - 286
+    - 378
+    rotation: 0
+    state: enabled
+- name: symbol_repeat
+  id: blocks_repeat
+  parameters:
+    type: float
+    interp: sps
+    vlen: '1'
+  states:
+    coordinate:
+    - 556
+    - 378
+    rotation: 0
+    state: enabled
+- name: fsk_modulator
+  id: analog_frequency_modulator_fc
+  parameters:
+    sensitivity: 2*math.pi*fsk_deviation/samp_rate
+  states:
+    coordinate:
+    - 826
+    - 378
+    rotation: 0
+    state: enabled
+- name: throttle
+  id: blocks_throttle2
+  parameters:
+    type: complex
+    samples_per_second: samp_rate
+    vlen: '1'
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+  states:
+    coordinate:
+    - 1096
+    - 378
+    rotation: 0
+    state: enabled
+- name: canal_awgn
+  id: channels_channel_model
+  parameters:
+    noise_voltage: noise_voltage
+    freq_offset: '0.0'
+    epsilon: '1.0'
+    taps: 1.0+0.0j
+    seed: '0'
+    block_tags: 'False'
+  states:
+    coordinate:
+    - 1366
+    - 378
+    rotation: 0
+    state: enabled
+- name: psd_tx_vs_canal
+  id: qtgui_freq_sink_x
+  parameters:
+    name: '"PSD BFSK: Tx vs salida del canal"'
+    nconnections: '2'
+    type: complex
+    fftsize: '2048'
+    bw: samp_rate
+    fc: '0'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    average: '0.2'
+    grid: 'True'
+    ymin: '-120'
+    ymax: '10'
+    units: dB
+    update_time: '0.10'
+    gui_hint: ''
+    freqhalf: 'True'
+    label1: '"Tx"'
+    label2: '"Salida canal"'
+  states:
+    coordinate:
+    - 1366
+    - 638
+    rotation: 0
+    state: enabled
+- name: envolvente_compleja
+  id: qtgui_time_sink_x
+  parameters:
+    name: '"Envolvente compleja: Tx vs salida del canal"'
+    nconnections: '2'
+    type: complex
+    size: '2048'
+    srate: samp_rate
+    autoscale: 'False'
+    ymin: '-1.5'
+    ymax: '1.5'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'True'
+    gui_hint: ''
+    label1: '"Re Tx"'
+    label2: '"Im Tx"'
+    label3: '"Re canal"'
+    label4: '"Im canal"'
+  states:
+    coordinate:
+    - 1366
+    - 898
+    rotation: 0
+    state: enabled
+- name: retardo_ref
+  id: blocks_delay
+  parameters:
+    type: byte
+    delay: delay_bits
+    vlen: '1'
+    num_ports: '1'
+    showports: 'False'
+  states:
+    coordinate:
+    - 286
+    - 528
+    rotation: 0
+    state: enabled
+- name: filtro_canal
+  id: fir_filter_xxx
+  parameters:
+    type: ccf
+    decim: rx_decim
+    taps: chan_taps
+    samp_delay: '0'
+  states:
+    coordinate:
+    - 1636
+    - 378
+    rotation: 0
+    state: enabled
+- name: discriminador_frecuencia
+  id: analog_quadrature_demod_cf
+  parameters:
+    gain: rx_rate/(2*math.pi*fsk_deviation)
+  states:
+    coordinate:
+    - 16
+    - 1218
+    rotation: 0
+    state: enabled
+- name: integrador_simbolo
+  id: blocks_moving_average_xx
+  parameters:
+    type: float
+    length: sps_rx
+    scale: 1.0/sps_rx
+    max_iter: '4000'
+    vlen: '1'
+  states:
+    coordinate:
+    - 286
+    - 1218
+    rotation: 0
+    state: enabled
+- name: sincronizador_simbolo
+  id: digital_symbol_sync_xx
+  parameters:
+    type: ff
+    ted_type: digital.TED_GARDNER
+    constellation: digital.constellation_bpsk().base()
+    sps: sps_rx
+    ted_gain: '1.0'
+    loop_bw: '0.005'
+    damping: '1.0'
+    max_dev: '1.5'
+    osps: '1'
+    resamp_type: digital.IR_MMSE_8TAP
+    nfilters: '128'
+    pfb_mf_taps: '[]'
+  states:
+    coordinate:
+    - 556
+    - 1218
+    rotation: 0
+    state: enabled
+- name: decision_umbral_0
+  id: digital_binary_slicer_fb
+  parameters: {}
+  states:
+    coordinate:
+    - 826
+    - 1218
+    rotation: 0
+    state: enabled
+- name: frecuencia_instantanea
+  id: qtgui_time_sink_x
+  parameters:
+    name: '"Rx: salida del discriminador y del integrador [x Δf]"'
+    nconnections: '2'
+    type: float
+    size: '1024'
+    srate: rx_rate
+    autoscale: 'False'
+    ymin: '-1.5'
+    ymax: '1.5'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'True'
+    gui_hint: ''
+    label1: '"Discriminador"'
+    label2: '"Integrado (Ts)"'
+  states:
+    coordinate:
+    - 286
+    - 1368
+    rotation: 0
+    state: enabled
+- name: ojo_integrado
+  id: qtgui_eye_sink_x
+  parameters:
+    type: float
+    size: '512'
+    samp_per_symbol: sps_rx
+    srate: rx_rate
+    name: '"Diagrama de ojo (salida del integrador)"'
+    nconnections: '1'
+    autoscale: 'False'
+    ymin: '-1.5'
+    ymax: '1.5'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'False'
+    gui_hint: ''
+  states:
+    coordinate:
+    - 286
+    - 1628
+    rotation: 0
+    state: enabled
+- name: bits_a_float_rx
+  id: blocks_char_to_float
+  parameters:
+    scale: '1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 826
+    - 1368
+    rotation: 0
+    state: enabled
+- name: bits_a_float_tx
+  id: blocks_char_to_float
+  parameters:
+    scale: '1'
+    vlen: '1'
+  states:
+    coordinate:
+    - 286
+    - 678
+    rotation: 0
+    state: enabled
+- name: bits_tx_vs_rx
+  id: qtgui_time_sink_x
+  parameters:
+    name: '"Bits Tx (referencia) vs bits Rx recuperados"'
+    nconnections: '2'
+    type: float
+    size: '128'
+    srate: symbol_rate
+    autoscale: 'False'
+    ymin: '-0.5'
+    ymax: '1.5'
+    grid: 'True'
+    update_time: '0.10'
+    ylabel: Amplitude
+    entags: 'True'
+    gui_hint: ''
+    label1: '"Bits Rx"'
+    label2: '"Bits Tx"'
+  states:
+    coordinate:
+    - 1366
+    - 1218
+    rotation: 0
+    state: enabled
+connections:
+- - fuente_prbs9
+  - '0'
+  - nrz_mapper
+  - '0'
+- - nrz_mapper
+  - '0'
+  - symbol_repeat
+  - '0'
+- - symbol_repeat
+  - '0'
+  - fsk_modulator
+  - '0'
+- - fsk_modulator
+  - '0'
+  - throttle
+  - '0'
+- - throttle
+  - '0'
+  - canal_awgn
+  - '0'
+- - throttle
+  - '0'
+  - psd_tx_vs_canal
+  - '0'
+- - canal_awgn
+  - '0'
+  - psd_tx_vs_canal
+  - '1'
+- - throttle
+  - '0'
+  - envolvente_compleja
+  - '0'
+- - canal_awgn
+  - '0'
+  - envolvente_compleja
+  - '1'
+- - canal_awgn
+  - '0'
+  - filtro_canal
+  - '0'
+- - filtro_canal
+  - '0'
+  - discriminador_frecuencia
+  - '0'
+- - integrador_simbolo
+  - '0'
+  - sincronizador_simbolo
+  - '0'
+- - sincronizador_simbolo
+  - '0'
+  - decision_umbral_0
+  - '0'
+- - discriminador_frecuencia
+  - '0'
+  - integrador_simbolo
+  - '0'
+- - discriminador_frecuencia
+  - '0'
+  - frecuencia_instantanea
+  - '0'
+- - integrador_simbolo
+  - '0'
+  - frecuencia_instantanea
+  - '1'
+- - integrador_simbolo
+  - '0'
+  - ojo_integrado
+  - '0'
+- - decision_umbral_0
+  - '0'
+  - bits_a_float_rx
+  - '0'
+- - bits_a_float_rx
+  - '0'
+  - bits_tx_vs_rx
+  - '0'
+- - bits_a_float_tx
+  - '0'
+  - bits_tx_vs_rx
+  - '1'
+- - fuente_prbs9
+  - '0'
+  - retardo_ref
+  - '0'
+- - retardo_ref
+  - '0'
+  - bits_a_float_tx
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

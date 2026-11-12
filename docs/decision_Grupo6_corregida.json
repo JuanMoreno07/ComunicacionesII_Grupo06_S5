@@ -1,0 +1,27 @@
+{
+  "version": "COM2-BETA-DECISION-1",
+  "group": "Grupo 6",
+  "members": "Juan Pablo Moreno Peña; Juan David Ruiz Higuera",
+  "scenario": "s5",
+  "scenarioName": "S5 · Telemetría binaria mediante FSK",
+  "problem": 0,
+  "modulation": 4,
+  "grc": 3,
+  "pack": 2,
+  "pulse": 0,
+  "bw": 0,
+  "perturbation": 4,
+  "variable": 4,
+  "levels": 0,
+  "observables": [
+    0,
+    2,
+    3,
+    4,
+    6
+  ],
+  "hypothesis": 0,
+  "justification": "Corrección tras la retroalimentación «TODAVÍA NO VIABLE». Se usa el paquete C (Rs=10 ksym/s; SPS=100; fs=1 MS/s), que cumple fs=Rs×SPS (10 000×100 = 1 000 000) y coincide con samp_rate y sps de Modulacion_FSK.grc / Modulacion_FSK_AWGN.grc, de modo que la tasa de símbolos queda fija como exige S5. La perturbación pasa a ser 'Variar desviación de frecuencia Δf', que es el fenómeno del escenario y la variable de la hipótesis H1; el AWGN se conserva solo como nivel de ruido de cada prueba del selector guiado (ref: Δf=5 kHz sin ruido; suave: 5 kHz, 0,05; media: 10 kHz, 0,10; fuerte: 20 kHz, 0,20; h = 1, 2, 4; Carson 20, 30, 50 kHz). Se observarán PSD, frecuencia instantánea, señal temporal y Rb/Rs/BW calculados, y como extensión la BER automática.",
+  "timestamp": "2026-11-11T21:30:00.000Z",
+  "nota": "Ficha corregida por el grupo; no fue reenviada a la plataforma porque el docente no lo solicitó."
+}
