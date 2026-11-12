@@ -41,7 +41,6 @@ Abrir en GNU Radio y pulsar *Run* (F6).
 - `G6_BFSK_HackRF_Rx_BER.grc`: receptor con `e_EbN0_Sweep`, `e_BER_Curve` y escritura de `curva_BER.csv` (Guía 4).
 - `G6_BFSK_BER_Simulacion.grc`: la misma medición con el SDR reemplazado por una conexión directa.
 
-Los archivos originales del curso están sin modificar en `grc/archivos_originales_o_referencia/`.
 
 ## Tabla de pruebas
 | Prueba | Δf | noise_voltage | h | BW Carson | BW99 medido | Eb/N0 | Errores (receptor propio) |
