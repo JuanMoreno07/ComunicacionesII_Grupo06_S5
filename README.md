@@ -5,7 +5,6 @@
 ** Juan Pablo Moreno Peña · 
 Juan David Ruiz Higuera
 **Curso:** Comunicaciones II, Universidad Industrial de Santander, 2026-2
-**Última actualización:** 11 de noviembre de 2026
 **Video de socialización:** https://youtu.be/89CpjFcQKe8
 
 ![Escenario](figures/escenario/escenario.png)
@@ -35,7 +34,7 @@ La ficha original (`docs/decision_Grupo6.json`) fue calificada «TODAVÍA NO VIA
 | Hardware | HackRF One, fc = 960 MHz, radio_rate = 2 MS/s (resampler 2/1), lo_off = 200 kHz |
 
 ## Archivos GRC y cómo ejecutarlos
-Abrir en GNU Radio Companion 3.10 y pulsar *Run* (F6).
+Abrir en GNU Radio y pulsar *Run* (F6).
 - `grc/archivos_modificados/G6_Modulacion_FSK_AWGN_S5.grc`: **flujograma principal de las pruebas.** Es una copia del GRC base en la que solo cambian `fsk_deviation` y `noise_voltage` (más variables de cálculo h, Carson y Eb/N0). Ajustar los dos deslizadores según la tabla de pruebas.
 - `G6_BFSK_TxRx_Simulacion.grc`: extensión con el receptor del grupo (recupera los bits y muestra el ojo).
 - `G6_BFSK_HackRF_Tx.grc` / `G6_BFSK_HackRF_Rx.grc`: enlace con dos HackRF One en dos computadores. Requiere gr-osmosdr. En el Rx, ajustar `rx_ppm` hasta que el offset estimado quede cerca de 0 Hz.
