@@ -70,4 +70,4 @@ scripts/        scripts de simulación y figuras (Python + GNU Radio)
 ```
 
 ## Uso de IA
-Se usó un asistente de IA (Claude) como apoyo para organizar la documentación, revisar flujogramas y generar figuras a partir de las simulaciones. Los resultados fueron revisados por el equipo.
+El grupo declara que estos archivos son producto de nuestro propio trabajo. Las ideas y resultados de otros autores se citan en formato IEEE en la sección de referencias del informe. Se aclara el uso de herramientas de inteligencia artificial (Claude y Gemini) para la consulta de información relacionada con el tema, elaboración de la imagen del escenario, revisión de normativa y para la revisión ortográfica del texto.
