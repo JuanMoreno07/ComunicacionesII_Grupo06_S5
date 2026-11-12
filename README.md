@@ -4,7 +4,7 @@
 **Integrantes:** Juan Pablo Moreno Peña · Juan David Ruiz Higuera
 **Curso:** Comunicaciones II, Universidad Industrial de Santander, 2026-2
 **Última actualización:** 11 de noviembre de 2026
-**Video de socialización:** _(pendiente: agregar enlace)_
+**Video de socialización:** https://youtu.be/89CpjFcQKe8
 
 ![Escenario](figures/escenario/escenario.png)
 
